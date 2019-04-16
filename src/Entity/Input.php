@@ -46,6 +46,16 @@ class Input
      */
     private $url;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\IdUser", inversedBy="link")
+     */
+    private $idUser;
+
+    
+    private $refUser;
+    
+    
+
     public function getId(): ?int
     {
         return $this->id;
@@ -119,6 +129,30 @@ class Input
     public function setUrl(?string $url): self
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    public function getIdUser(): ?IdUser
+    {
+        return $this->idUser;
+    }
+
+    public function setIdUser(?IdUser $idUser): self
+    {
+        $this->idUser = $idUser;
+
+        return $this;
+    }
+
+    public function getRefUser(): ?string
+    {
+        return $this->refUser;
+    }
+
+    public function setRefUser(?string $refUser): self
+    {
+        $this->refUser = $refUser;
 
         return $this;
     }

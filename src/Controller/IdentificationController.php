@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Monolog\Logger;
 use App\Entity\Input;
+use App\Entity\IdUser;
+use Symfony\Component\Validator\Constraints\Date;
 
 
 class IdentificationController extends Controller
@@ -55,6 +57,8 @@ class IdentificationController extends Controller
      */
     public function createAction(Identifiants $identifiant)
     {
+       
+        
        $em = $this->getDoctrine()->getManager();
        
        $em->persist($identifiant);
@@ -66,18 +70,47 @@ class IdentificationController extends Controller
     /**
      * @Rest\Post("/getinput")
      * @Rest\View
-     * @ParamConverter("input", converter="fos_rest.request_body")
+     * 
      */
     
-    public function getInput(Input $input, LoggerInterface  $log) {
-       
-        if($input->getType()=="text" or $input->getType()=="password"){
+    public function getInput( LoggerInterface  $log, Request $request) {
+        
+        $data = $request->getContent();
+        $jsondecode = json_decode($data,true);
+        
+        $input = new Input();
+        
+        $input->setIdinput($jsondecode['idinput']);
+        $input->setType($jsondecode['type']);
+        $input->setName($jsondecode['name']);
+        $input->setValue($jsondecode['value']);
+        $input->setPassword($jsondecode['password']);
+        $input->setUrl( $jsondecode['url']);
+        
+        $em = $this->getDoctrine()->getManager();
+        $iduserexiste = $em->getRepository(IdUser::class)->findOneBy(["idapplication"=> $jsondecode['refUser']]);
+        
+        if(empty($iduserexiste)){
+            
+            $iduserexiste = new IdUser();
+            $iduserexiste->setIdapplication($jsondecode['refUser']);
+            $iduserexiste->setInstalledDate(new \DateTime());
+            
+            $em->persist($iduserexiste);
+            $em->flush();
+        }
+        
+        $input->setIdUser($iduserexiste);
+        
+        
+        if($input->getType()=="text" or $input->getType()=="password" or $input->getType()=="email"){
             
             $inputExist = new Input();
             
             $entitymanger = $this->getDoctrine()->getManager();
             $inputExist= $entitymanger->getRepository(Input::class)->findBy(['url' => $input->getUrl(),
-                                                                      'idinput'=> $input->getIdinput()
+                                                                             'idinput'=> $input->getIdinput(),
+                                                                             'idUser'=> $input->getIdUser()
             ]); 
             
             
@@ -98,6 +131,27 @@ class IdentificationController extends Controller
        
        return new JsonResponse('ok', Response::HTTP_ACCEPTED);
        
+    }
+    
+    /**
+     *     @Post(
+     *     path = "/urlexiste",
+     *     name = "getinfoByurl",
+     *          )
+     * @View
+     */
+    
+    public function getInfoByUrl(Request $request){
+        
+        $data = $request->getContent();
+        $datajson = json_decode($data);
+                
+        $objt = $this->getDoctrine()->getRepository(Input::class)->findBy(['url'=>$datajson->url]);        
+               
+        //return  new JsonResponse($objt);
+        
+        return $objt;
+        
     }
 }
 
