@@ -34,19 +34,17 @@ class IdentificationController extends Controller
     }
     
     /**
-     *     @Get(
-     *     path = "/identifiant",
-     *     name = "app_article_show",
+     *     @Post(
+     *     path = "/watchdog",
+     *     name = "watchdog",
      *          )
      * @View
      */
     
-    public function test(){
+    public function watchdog(){
         
-        $objt = $this->getDoctrine()->getRepository(Identifiants::class)->find(1);
         
-        //dump($objt);die;
-       return  $objt;
+       return  new JsonResponse('success', Response::HTTP_OK);
        
     }
     
